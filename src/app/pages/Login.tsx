@@ -5,13 +5,13 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Building2, AlertCircle } from 'lucide-react';
+import { Building2, AlertCircle, Chrome } from 'lucide-react';
 import { toast } from 'sonner';
 import { AUTH_DISABLED } from '../lib/auth';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,6 +49,31 @@ export default function Login() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError('');
+
+    if (AUTH_DISABLED) {
+      toast.success('Auth is disabled. Entering dashboard...');
+      navigate('/dashboard');
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await signInWithGoogle();
+    if (error) {
+      setError(error.message || 'Google sign-in failed');
+      toast.error('Google sign-in failed', {
+        description: error.message || 'Please try again',
+      });
+      setLoading(false);
+      return;
+    }
+
+    toast.success('Welcome!');
+    navigate('/dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-md">
@@ -77,6 +102,17 @@ export default function Login() {
                   <span>{error}</span>
                 </div>
               )}
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-11"
+                disabled={loading}
+                onClick={handleGoogleSignIn}
+              >
+                <Chrome className="w-4 h-4 mr-2" />
+                Continue with Google
+              </Button>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>

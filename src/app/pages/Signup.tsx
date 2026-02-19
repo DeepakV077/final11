@@ -59,9 +59,9 @@ export default function Signup() {
       setLoading(false);
     } else {
       toast.success('Account created successfully!', {
-        description: 'You can now sign in with your credentials',
+        description: 'Welcome to CitySpark',
       });
-      navigate('/login');
+      navigate('/dashboard');
     }
   };
 

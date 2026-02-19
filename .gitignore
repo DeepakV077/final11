@@ -1,2 +1,9 @@
 /node_modules
 /guidelines
+
+# Build output
+/dist
+
+# Local env files
+.env
+.env.*

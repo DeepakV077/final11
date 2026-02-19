@@ -55,8 +55,15 @@ export default function ProtectedLayout() {
     return null;
   }
 
-  const displayName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Guest User';
-  const displayRole = user?.user_metadata?.role || 'Guest';
+  const displayName = user?.displayName || user?.email?.split('@')[0] || 'Guest User';
+  const displayRole = (() => {
+    if (!user) return 'Guest';
+    try {
+      return localStorage.getItem(`auth_role_${user.uid}`) || 'User';
+    } catch {
+      return 'User';
+    }
+  })();
 
   const handleSignOut = async () => {
     await signOut();

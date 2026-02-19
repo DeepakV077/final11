@@ -1,96 +1,96 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  User as FirebaseUser,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  updateProfile,
+} from 'firebase/auth';
+import { firebaseAuth, googleAuthProvider } from '../lib/firebase';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: FirebaseUser | null;
   loading: boolean;
   signUp: (email: string, password: string, name: string, role?: string) => Promise<{ error?: any }>;
   signIn: (email: string, password: string) => Promise<{ error?: any }>;
+  signInWithGoogle: () => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (nextUser) => {
+      setUser(nextUser);
       setLoading(false);
     });
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
+    return () => unsubscribe();
+  }, []);
 
-    return () => subscription.unsubscribe();
+  const roleKey = useMemo(() => {
+    return (uid: string) => `auth_role_${uid}`;
   }, []);
 
   const signUp = async (email: string, password: string, name: string, role: string = 'analyst') => {
     try {
-      // Call backend to create user with service role
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-13260aab/signup`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${publicAnonKey}`,
-          },
-          body: JSON.stringify({ email, password, name, role }),
-        }
-      );
+      const credentials = await createUserWithEmailAndPassword(firebaseAuth, email, password);
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        return { error: data.error || 'Signup failed' };
+      if (name) {
+        await updateProfile(credentials.user, { displayName: name });
+      }
+
+      if (role) {
+        try {
+          localStorage.setItem(roleKey(credentials.user.uid), role);
+        } catch {
+          // ignore storage failures (private browsing / denied)
+        }
       }
 
       return { error: null };
     } catch (error: any) {
       console.error('Signup error:', error);
-      return { error: error.message || 'Signup failed' };
+      return { error };
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) return { error };
+      await signInWithEmailAndPassword(firebaseAuth, email, password);
       return { error: null };
     } catch (error: any) {
       console.error('Sign in error:', error);
-      return { error: error.message || 'Sign in failed' };
+      return { error };
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      await signInWithPopup(firebaseAuth, googleAuthProvider);
+      return { error: null };
+    } catch (error: any) {
+      console.error('Google sign in error:', error);
+      return { error };
     }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await firebaseSignOut(firebaseAuth);
   };
 
   const value = {
     user,
-    session,
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
   };
 

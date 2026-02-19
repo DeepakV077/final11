@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { AlertCircle, TrendingUp, MapPin, Target, Activity, CheckCircle2 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { projectId, publicAnonKey } from '/utils/supabase/info';
-import { Badge } from '../components/ui/badge';
 import { getMockDashboardData } from '../lib/mockData';
 
 interface DashboardData {
@@ -20,7 +19,6 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [usingMock, setUsingMock] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -43,11 +41,9 @@ export default function Dashboard() {
 
       const result = await response.json();
       setData(result);
-      setUsingMock(false);
     } catch (err: any) {
       console.error('Dashboard fetch error:', err);
       setData(getMockDashboardData());
-      setUsingMock(true);
       setError('');
     } finally {
       setLoading(false);
@@ -84,10 +80,7 @@ export default function Dashboard() {
     <div className="p-6 space-y-6">
       {/* Page Header */}
       <div>
-        <div className="flex items-center gap-3">
-          <h2 className="text-2xl font-bold text-foreground">Executive Dashboard</h2>
-          {usingMock && <Badge variant="secondary">Demo data</Badge>}
-        </div>
+        <h2 className="text-2xl font-bold text-foreground">Executive Dashboard</h2>
         <p className="text-muted-foreground mt-1">
           Real-time overview of migration patterns and regional imbalances
         </p>

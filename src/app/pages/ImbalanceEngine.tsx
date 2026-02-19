@@ -5,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { AlertCircle, Info, BarChart3 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter } from 'recharts';
 import { projectId, publicAnonKey } from '/utils/supabase/info';
-import { Badge } from '../components/ui/badge';
 import { getMockDistrictAnalysis, getMockDistricts } from '../lib/mockData';
 
 export default function ImbalanceEngine() {
@@ -14,7 +13,6 @@ export default function ImbalanceEngine() {
   const [districtData, setDistrictData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [usingMock, setUsingMock] = useState(false);
 
   useEffect(() => {
     fetchDistricts();
@@ -35,12 +33,10 @@ export default function ImbalanceEngine() {
       
       const data = await response.json();
       setDistricts(data.districts || []);
-      setUsingMock(false);
     } catch (err: any) {
       console.error('Fetch districts error:', err);
       const mock = getMockDistricts();
       setDistricts(mock.districts);
-      setUsingMock(true);
       setError('');
     }
   };
@@ -68,11 +64,9 @@ export default function ImbalanceEngine() {
 
       const data = await response.json();
       setDistrictData(data);
-      setUsingMock(false);
     } catch (err: any) {
       console.error('Analysis error:', err);
       setDistrictData(getMockDistrictAnalysis(selectedDistrict));
-      setUsingMock(true);
       setError('');
     } finally {
       setLoading(false);
@@ -82,10 +76,7 @@ export default function ImbalanceEngine() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <div className="flex items-center gap-3">
-          <h2 className="text-2xl font-bold text-foreground">Imbalance Engine</h2>
-          {usingMock && <Badge variant="secondary">Demo data</Badge>}
-        </div>
+        <h2 className="text-2xl font-bold text-foreground">Imbalance Engine</h2>
         <p className="text-muted-foreground mt-1">
           Compute composite scores from economic, infrastructure, and social indicators
         </p>

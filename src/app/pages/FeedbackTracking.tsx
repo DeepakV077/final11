@@ -9,14 +9,12 @@ import { MessageSquare, TrendingUp, CheckCircle2, XCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { projectId, publicAnonKey } from '/utils/supabase/info';
 import { toast } from 'sonner';
-import { Badge } from '../components/ui/badge';
 import { getMockFeedback } from '../lib/mockData';
 
 export default function FeedbackTracking() {
   const [feedbackList, setFeedbackList] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [usingMock, setUsingMock] = useState(false);
   const [formData, setFormData] = useState({
     district: '',
     policyName: '',
@@ -44,12 +42,10 @@ export default function FeedbackTracking() {
 
       const data = await response.json();
       setFeedbackList(data.feedback || []);
-      setUsingMock(false);
     } catch (err: any) {
       console.error('Fetch feedback error:', err);
       const mock = getMockFeedback();
       setFeedbackList(mock.feedback);
-      setUsingMock(true);
     }
   };
 
@@ -111,10 +107,7 @@ export default function FeedbackTracking() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-foreground">Feedback Tracking</h2>
-            {usingMock && <Badge variant="secondary">Demo data</Badge>}
-          </div>
+          <h2 className="text-2xl font-bold text-foreground">Feedback Tracking</h2>
           <p className="text-muted-foreground mt-1">
             Monitor policy adoption rates, allocated budgets, and real-world outcomes
           </p>

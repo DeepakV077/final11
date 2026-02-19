@@ -8,6 +8,8 @@ import { Slider } from '../components/ui/slider';
 import { AlertCircle, Lightbulb, TrendingDown, Info } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from 'recharts';
 import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { Badge } from '../components/ui/badge';
+import { getMockSimulationResult } from '../lib/mockData';
 
 export default function SimulationWizard() {
   const [district, setDistrict] = useState('');
@@ -21,6 +23,7 @@ export default function SimulationWizard() {
   const [simulationResult, setSimulationResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [usingMock, setUsingMock] = useState(false);
 
   const handleLeverChange = (lever: string, value: number[]) => {
     setLevers(prev => ({ ...prev, [lever]: value[0] }));
@@ -62,9 +65,12 @@ export default function SimulationWizard() {
 
       const data = await response.json();
       setSimulationResult(data);
+      setUsingMock(false);
     } catch (err: any) {
       console.error('Simulation error:', err);
-      setError(err.message);
+      setSimulationResult(getMockSimulationResult({ district, budget, levers }));
+      setUsingMock(true);
+      setError('');
     } finally {
       setLoading(false);
     }
@@ -75,7 +81,10 @@ export default function SimulationWizard() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Simulation Wizard</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold text-foreground">Simulation Wizard</h2>
+          {usingMock && <Badge variant="secondary">Demo data</Badge>}
+        </div>
         <p className="text-muted-foreground mt-1">
           Model policy impacts across multiple levers with budget allocation optimization
         </p>

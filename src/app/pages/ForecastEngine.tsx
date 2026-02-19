@@ -4,11 +4,14 @@ import { Button } from '../components/ui/button';
 import { AlertCircle, TrendingUp, Info } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from 'recharts';
 import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { Badge } from '../components/ui/badge';
+import { getMockForecastData } from '../lib/mockData';
 
 export default function ForecastEngine() {
   const [forecastData, setForecastData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [usingMock, setUsingMock] = useState(false);
 
   useEffect(() => {
     fetchForecast();
@@ -32,9 +35,12 @@ export default function ForecastEngine() {
 
       const data = await response.json();
       setForecastData(data);
+      setUsingMock(false);
     } catch (err: any) {
       console.error('Forecast fetch error:', err);
-      setError(err.message);
+      setForecastData(getMockForecastData());
+      setUsingMock(true);
+      setError('');
     } finally {
       setLoading(false);
     }
@@ -51,7 +57,7 @@ export default function ForecastEngine() {
     );
   }
 
-  if (error) {
+  if (error && !forecastData) {
     return (
       <div className="p-6">
         <Card className="border-destructive">
@@ -69,7 +75,10 @@ export default function ForecastEngine() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Forecast Engine</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold text-foreground">Forecast Engine</h2>
+          {usingMock && <Badge variant="secondary">Demo data</Badge>}
+        </div>
         <p className="text-muted-foreground mt-1">
           ARIMA-based migration projections with confidence intervals and statistical validation
         </p>
